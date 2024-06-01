@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useMic } from "@/lib/useMic";
+
 import { Check, Mic, Pause, StepForward } from "lucide-react";
 import { useState } from "react";
 
@@ -13,35 +15,49 @@ export default function Home() {
   const [recordingState, setRecordingState] =
     useState<RecordingState>("stopped");
 
+  const { startMic, stopMic, pauseMic, resumeMic } = useMic();
+
+  const startRecording = async () => {
+    startMic();
+    setRecordingState("active");
+  };
+
+  const pauseRecording = () => {
+    pauseMic();
+    setRecordingState("paused");
+  };
+
+  const stopRecording = () => {
+    stopMic();
+    setRecordingState("stopped");
+  };
+
+  const resumeRecording = () => {
+    resumeMic();
+    setRecordingState("active");
+  };
+
   return (
     <main className="relative flex max-h-screen min-h-screen gap-3 p-4">
       <div className="flex w-1/2 flex-grow flex-col gap-3">
         <div className="relative flex items-center gap-3 rounded-lg border border-border bg-background p-4">
           {recordingState === "stopped" && (
-            <Button size={"sm"} onClick={() => setRecordingState("active")}>
+            <Button size={"sm"} onClick={startRecording}>
               <Mic className="mr-2" /> Start Recording
             </Button>
           )}
           {recordingState === "active" && (
-            <Button
-              size={"sm"}
-              variant={"outline"}
-              onClick={() => setRecordingState("paused")}
-            >
+            <Button size={"sm"} variant={"outline"} onClick={pauseRecording}>
               <Pause className="mr-2" /> Pause
             </Button>
           )}
           {recordingState === "paused" && (
-            <Button size={"sm"} onClick={() => setRecordingState("active")}>
+            <Button size={"sm"} onClick={resumeRecording}>
               <StepForward className="mr-2" /> Resume
             </Button>
           )}
           {recordingState !== "stopped" && (
-            <Button
-              size={"sm"}
-              variant={"default"}
-              onClick={() => setRecordingState("stopped")}
-            >
+            <Button size={"sm"} variant={"default"} onClick={stopRecording}>
               <Check className="mr-2" /> Done
             </Button>
           )}
