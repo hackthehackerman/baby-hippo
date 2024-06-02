@@ -29,6 +29,13 @@ export default function Home() {
   const chunksRef = useRef<Blob[]>([]);
 
   const [audioURL, setAudioURL] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+    }
+  });
 
   const processChunks = () => {
     const blob = new Blob(chunksRef.current, {
@@ -136,10 +143,11 @@ export default function Home() {
         </div>
 
         <Textarea
-          className="min-h-96 flex-grow resize-none p-4 disabled:!opacity-100"
+          className="flex h-full min-h-96 flex-grow resize-none p-4 text-lg disabled:!opacity-100"
           disabled
           placeholder="A live transcript of your recording will appear here."
           defaultValue={transcript}
+          ref={textareaRef}
         />
       </div>
       <div className="flex w-1/2 flex-grow flex-col gap-3 overflow-scroll rounded-lg border border-border bg-background p-4">

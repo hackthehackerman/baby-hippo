@@ -40,7 +40,11 @@ export const useDeepgram = () => {
   };
 
   const disconnect = useCallback(() => {
-    if (deepgram) {
+    if (
+      deepgram &&
+      (deepgram.getReadyState() !== LiveConnectionState.CLOSED ||
+        deepgram?.getReadyState() !== LiveConnectionState.CLOSING)
+    ) {
       deepgram.removeAllListeners();
       deepgram.finish();
       setDeepgram(null);
