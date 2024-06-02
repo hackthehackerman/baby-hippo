@@ -21,6 +21,7 @@ type Props = {
   transcript: string;
   audioURL: string;
   timer: number;
+  fillForm: () => void;
 };
 
 export const RecordingControls: React.FC<Props> = ({
@@ -33,6 +34,7 @@ export const RecordingControls: React.FC<Props> = ({
   transcript,
   audioURL,
   timer,
+  fillForm,
 }) => {
   return (
     <div className="flex h-20 items-center justify-between gap-4 rounded-lg border border-border bg-background p-4">
@@ -47,7 +49,7 @@ export const RecordingControls: React.FC<Props> = ({
             <Button size={"sm"} onClick={reset} variant={"outline"}>
               <Redo className="mr-2 h-5 w-5" /> Restart Recording
             </Button>
-            <Button size={"sm"}>
+            <Button size={"sm"} onClick={fillForm}>
               <Sparkles className="mr-2 h-5 w-5" /> Fill Form
             </Button>
           </>

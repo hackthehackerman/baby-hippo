@@ -10,10 +10,24 @@ import {
   LiveTranscriptionEvent,
   LiveTranscriptionEvents,
 } from "@deepgram/sdk";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 export type RecordingState = "active" | "paused" | "stopped";
+
+export const formSchema = z.object({
+  patientName: z.string().min(2).max(50),
+  dateOfBirth: z.string().datetime(),
+  caseNumber: z.string().optional(),
+  injuryDescription: z.string().min(10).max(500),
+  previousTreatment: z.string().min(5).max(500),
+  patientGoals: z.string().min(10).max(500),
+  referralSource: z.string().min(5).max(100),
+  therapistNotes: z.string().min(5).max(1000),
+});
 
 export default function Home() {
   const [recordingState, setRecordingState] =
@@ -144,8 +158,28 @@ export default function Home() {
     setAudioURL("");
     setTranscript("");
     setRecordingState("stopped");
+    form.reset();
     chunksRef.current = [];
     setTimer(0);
+  };
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      patientName: "",
+      dateOfBirth: "",
+      caseNumber: "",
+      injuryDescription: "",
+      previousTreatment: "",
+      patientGoals: "",
+      referralSource: "",
+      therapistNotes: "",
+    },
+  });
+
+  const fillForm = () => {
+    // need to call api here
+    console.log(transcript);
   };
 
   return (
@@ -162,11 +196,12 @@ export default function Home() {
             stopRecording={stopRecording}
             timer={timer}
             transcript={transcript}
+            fillForm={fillForm}
           />
           <TranscriptArea transcript={transcript} ref={textareaRef} />
         </div>
         <div className="flex w-1/2 flex-grow flex-col gap-3 overflow-scroll rounded-lg border border-border bg-background p-4">
-          <PatientForm />
+          <PatientForm form={form} />
         </div>
       </main>
     </main>
