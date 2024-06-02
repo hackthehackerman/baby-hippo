@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useDeepgram } from "@/lib/useDeepgram";
 import { useMic } from "@/lib/useMic";
+import {
+  LiveConnectionState,
+  LiveTranscriptionEvent,
+  LiveTranscriptionEvents,
+} from "@deepgram/sdk";
 
 import { Check, Mic, Pause, StepForward } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type RecordingState = "active" | "paused" | "stopped";
 
@@ -15,26 +21,55 @@ export default function Home() {
   const [recordingState, setRecordingState] =
     useState<RecordingState>("stopped");
 
-  const { startMic, stopMic, pauseMic, resumeMic } = useMic();
+  const [transcript, setTranscript] = useState("");
+
+  const { deepgram, initializeDeepgram, disconnect } = useDeepgram();
+
+  const { mic, startMic, stopMic } = useMic();
+
+  useEffect(() => {
+    if (!mic || !deepgram) return;
+
+    const onData = (e: BlobEvent) => {
+      if (deepgram && deepgram.getReadyState() === LiveConnectionState.OPEN) {
+        deepgram?.send(e.data);
+      }
+    };
+
+    const onTranscript = (data: LiveTranscriptionEvent) => {
+      const { is_final: isFinal, speech_final: speechFinal } = data;
+      let thisCaption = data.channel.alternatives[0].transcript;
+
+      if (thisCaption !== "" && isFinal) {
+        setTranscript((prev) => prev + " " + thisCaption);
+      }
+    };
+
+    deepgram.addListener(LiveTranscriptionEvents.Transcript, onTranscript);
+    mic.addEventListener("dataavailable", onData);
+
+    return () => {
+      deepgram.removeListener(LiveTranscriptionEvents.Transcript, onTranscript);
+      mic.removeEventListener("dataavailable", onData);
+    };
+  }, [deepgram, mic]);
 
   const startRecording = async () => {
+    initializeDeepgram();
     startMic();
     setRecordingState("active");
   };
 
   const pauseRecording = () => {
-    pauseMic();
+    stopMic();
     setRecordingState("paused");
+    disconnect();
   };
 
   const stopRecording = () => {
     stopMic();
     setRecordingState("stopped");
-  };
-
-  const resumeRecording = () => {
-    resumeMic();
-    setRecordingState("active");
+    disconnect();
   };
 
   return (
@@ -52,7 +87,7 @@ export default function Home() {
             </Button>
           )}
           {recordingState === "paused" && (
-            <Button size={"sm"} onClick={resumeRecording}>
+            <Button size={"sm"} onClick={startRecording}>
               <StepForward className="mr-2" /> Resume
             </Button>
           )}
@@ -67,6 +102,7 @@ export default function Home() {
           className="min-h-96 flex-grow resize-none p-4 disabled:!opacity-100"
           disabled
           placeholder="A live transcript of your recording will appear here."
+          defaultValue={transcript}
         />
       </div>
       <div className="flex w-1/2 flex-grow flex-col gap-3 overflow-scroll rounded-lg border border-border bg-background p-4">

@@ -14,8 +14,6 @@ export const useMic = () => {
 
       const microphone = new MediaRecorder(userMedia);
 
-      microphone.ondataavailable = (e) => console.log(e);
-
       setMic(microphone);
       return microphone;
     } catch (err: any) {
@@ -24,21 +22,9 @@ export const useMic = () => {
     }
   };
 
-  const pauseMic = useCallback(() => {
-    if (mic?.state === "recording") {
-      mic.pause();
-    }
-  }, [mic]);
-
   const stopMic = useCallback(() => {
     mic?.stream.getAudioTracks().forEach((track) => track.stop());
     setMic(null);
-  }, [mic]);
-
-  const resumeMic = useCallback(() => {
-    if (mic?.state === "paused") {
-      mic?.resume();
-    }
   }, [mic]);
 
   const startMic = useCallback(async () => {
@@ -46,9 +32,9 @@ export const useMic = () => {
       const microphone = await initMic();
       microphone.start(250);
     } else {
-      mic.start();
+      mic.start(250);
     }
   }, [mic]);
 
-  return { initMic, startMic, pauseMic, stopMic, resumeMic };
+  return { mic, initMic, startMic, stopMic };
 };
