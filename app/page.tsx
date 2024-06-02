@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeepgram } from "@/lib/useDeepgram";
 import { useMic } from "@/lib/useMic";
+import { formatTime } from "@/lib/utils";
 import {
   LiveConnectionState,
   LiveTranscriptionEvent,
@@ -14,11 +15,10 @@ import {
 
 import {
   Check,
+  Disc,
   Mic,
   Pause,
-  PencilIcon,
   Redo,
-  Sparkle,
   Sparkles,
   StepForward,
 } from "lucide-react";
@@ -39,6 +39,22 @@ export default function Home() {
 
   const [audioURL, setAudioURL] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (recordingState === "active") {
+      interval = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+    } else if (recordingState === "paused" || recordingState === "stopped") {
+      if (interval) clearInterval(interval);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [recordingState]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -86,6 +102,9 @@ export default function Home() {
   const startRecording = async () => {
     initializeDeepgram();
     startMic();
+    if (recordingState === "stopped") {
+      setTimer(0);
+    }
     setRecordingState("active");
   };
 
@@ -108,6 +127,7 @@ export default function Home() {
     setTranscript("");
     setRecordingState("stopped");
     chunksRef.current = [];
+    setTimer(0);
   };
 
   return (
@@ -147,7 +167,17 @@ export default function Home() {
             )}
           </div>
 
-          {audioURL && recordingState !== "active" && (
+          {recordingState !== "stopped" && (
+            <div className="flex items-center gap-2">
+              {recordingState === "paused" && <Pause />}
+              {recordingState === "active" && (
+                <Disc className="animate-pulse text-red-500" />
+              )}
+              <div className="font-mono text-lg">{formatTime(timer)}</div>
+            </div>
+          )}
+
+          {audioURL && recordingState === "stopped" && (
             <audio
               className="max-h-10 flex-grow"
               src={audioURL}
