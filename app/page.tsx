@@ -12,8 +12,8 @@ import {
   LiveTranscriptionEvents,
 } from "@deepgram/sdk";
 
-import { Check, Mic, Pause, StepForward } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, Mic, Pause, Redo, StepForward } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 type RecordingState = "active" | "paused" | "stopped";
 
@@ -26,12 +26,25 @@ export default function Home() {
   const { deepgram, initializeDeepgram, disconnect } = useDeepgram();
 
   const { mic, startMic, stopMic } = useMic();
+  const chunksRef = useRef<Blob[]>([]);
+
+  const [audioURL, setAudioURL] = useState("");
+
+  const processChunks = () => {
+    const blob = new Blob(chunksRef.current, {
+      type: "audio/ogg; codecs=opus",
+    });
+    setAudioURL(window.URL.createObjectURL(blob));
+  };
 
   useEffect(() => {
     if (!mic || !deepgram) return;
 
     const onData = (e: BlobEvent) => {
       if (deepgram && deepgram.getReadyState() === LiveConnectionState.OPEN) {
+        chunksRef.current.push(e.data);
+        console.log(chunksRef.current);
+
         deepgram?.send(e.data);
       }
     };
@@ -61,40 +74,64 @@ export default function Home() {
   };
 
   const pauseRecording = () => {
+    processChunks();
     stopMic();
     setRecordingState("paused");
     disconnect();
   };
 
   const stopRecording = () => {
+    processChunks();
     stopMic();
     setRecordingState("stopped");
     disconnect();
   };
 
+  const reset = async () => {
+    setAudioURL("");
+    setTranscript("");
+    setRecordingState("stopped");
+    chunksRef.current = [];
+  };
+
   return (
     <main className="relative flex max-h-screen min-h-screen gap-3 p-4">
       <div className="flex w-1/2 flex-grow flex-col gap-3">
-        <div className="relative flex items-center gap-3 rounded-lg border border-border bg-background p-4">
-          {recordingState === "stopped" && (
-            <Button size={"sm"} onClick={startRecording}>
-              <Mic className="mr-2" /> Start Recording
-            </Button>
-          )}
-          {recordingState === "active" && (
-            <Button size={"sm"} variant={"outline"} onClick={pauseRecording}>
-              <Pause className="mr-2" /> Pause
-            </Button>
-          )}
-          {recordingState === "paused" && (
-            <Button size={"sm"} onClick={startRecording}>
-              <StepForward className="mr-2" /> Resume
-            </Button>
-          )}
-          {recordingState !== "stopped" && (
-            <Button size={"sm"} variant={"default"} onClick={stopRecording}>
-              <Check className="mr-2" /> Done
-            </Button>
+        <div className="flex h-20 items-center justify-between gap-4 rounded-lg border border-border bg-background p-4">
+          <div className="flex items-center gap-3">
+            {recordingState === "stopped" && !transcript && !audioURL && (
+              <Button size={"sm"} onClick={startRecording}>
+                <Mic className="mr-2" /> Start Recording
+              </Button>
+            )}
+            {recordingState === "stopped" && (!!transcript || !!audioURL) && (
+              <Button size={"sm"} onClick={reset}>
+                <Redo className="mr-2" /> Restart Recording
+              </Button>
+            )}
+            {recordingState === "active" && (
+              <Button size={"sm"} variant={"outline"} onClick={pauseRecording}>
+                <Pause className="mr-2" /> Pause
+              </Button>
+            )}
+            {recordingState === "paused" && (
+              <Button size={"sm"} onClick={startRecording}>
+                <StepForward className="mr-2" /> Resume
+              </Button>
+            )}
+            {recordingState !== "stopped" && (
+              <Button size={"sm"} variant={"default"} onClick={stopRecording}>
+                <Check className="mr-2" /> Done
+              </Button>
+            )}
+          </div>
+
+          {audioURL && recordingState !== "active" && (
+            <audio
+              className="max-h-10 flex-grow"
+              src={audioURL}
+              controls={true}
+            />
           )}
         </div>
 
