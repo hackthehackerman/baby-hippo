@@ -12,7 +12,16 @@ import {
   LiveTranscriptionEvents,
 } from "@deepgram/sdk";
 
-import { Check, Mic, Pause, Redo, StepForward } from "lucide-react";
+import {
+  Check,
+  Mic,
+  Pause,
+  PencilIcon,
+  Redo,
+  Sparkle,
+  Sparkles,
+  StepForward,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type RecordingState = "active" | "paused" | "stopped";
@@ -108,27 +117,32 @@ export default function Home() {
           <div className="flex items-center gap-3">
             {recordingState === "stopped" && !transcript && !audioURL && (
               <Button size={"sm"} onClick={startRecording}>
-                <Mic className="mr-2" /> Start Recording
+                <Mic className="mr-2 h-5 w-5" /> Start Recording
               </Button>
             )}
             {recordingState === "stopped" && (!!transcript || !!audioURL) && (
-              <Button size={"sm"} onClick={reset}>
-                <Redo className="mr-2" /> Restart Recording
+              <Button size={"sm"} onClick={reset} variant={"outline"}>
+                <Redo className="mr-2 h-5 w-5" /> Restart Recording
+              </Button>
+            )}
+            {recordingState === "stopped" && (!!transcript || !!audioURL) && (
+              <Button size={"sm"}>
+                <Sparkles className="mr-2 h-5 w-5" /> Fill Form
               </Button>
             )}
             {recordingState === "active" && (
               <Button size={"sm"} variant={"outline"} onClick={pauseRecording}>
-                <Pause className="mr-2" /> Pause
+                <Pause className="mr-2 h-5 w-5" /> Pause
               </Button>
             )}
             {recordingState === "paused" && (
               <Button size={"sm"} onClick={startRecording}>
-                <StepForward className="mr-2" /> Resume
+                <StepForward className="mr-2 h-5 w-5" /> Resume
               </Button>
             )}
             {recordingState !== "stopped" && (
               <Button size={"sm"} variant={"default"} onClick={stopRecording}>
-                <Check className="mr-2" /> Done
+                <Check className="mr-2 h-5 w-5" /> Done
               </Button>
             )}
           </div>
