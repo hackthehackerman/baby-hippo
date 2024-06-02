@@ -40,6 +40,27 @@ export default function Home() {
   const [audioURL, setAudioURL] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [timer, setTimer] = useState(0);
+  const keepAliveInterval = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    if (!deepgram) return;
+
+    if (
+      recordingState === "paused" &&
+      deepgram.getReadyState() === LiveConnectionState.OPEN
+    ) {
+      deepgram.keepAlive();
+      keepAliveInterval.current = setInterval(() => {
+        deepgram.keepAlive();
+      }, 5000);
+    } else {
+      clearInterval(keepAliveInterval.current);
+    }
+
+    return () => {
+      clearInterval(keepAliveInterval.current);
+    };
+  }, [deepgram, recordingState]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -75,14 +96,13 @@ export default function Home() {
     const onData = (e: BlobEvent) => {
       if (deepgram && deepgram.getReadyState() === LiveConnectionState.OPEN) {
         chunksRef.current.push(e.data);
-        console.log(chunksRef.current);
 
         deepgram?.send(e.data);
       }
     };
 
     const onTranscript = (data: LiveTranscriptionEvent) => {
-      const { is_final: isFinal, speech_final: speechFinal } = data;
+      const { is_final: isFinal } = data;
       let thisCaption = data.channel.alternatives[0].transcript;
 
       if (thisCaption !== "" && isFinal) {
@@ -109,10 +129,19 @@ export default function Home() {
   };
 
   const pauseRecording = () => {
-    processChunks();
-    stopMic();
+    if (mic && mic.state === "recording") {
+      mic.pause();
+    }
     setRecordingState("paused");
-    disconnect();
+  };
+
+  const resumeRecording = () => {
+    if (mic && mic.state === "paused") {
+      mic.resume();
+    } else {
+      startMic();
+    }
+    setRecordingState("active");
   };
 
   const stopRecording = () => {
@@ -156,7 +185,7 @@ export default function Home() {
               </Button>
             )}
             {recordingState === "paused" && (
-              <Button size={"sm"} onClick={startRecording}>
+              <Button size={"sm"} onClick={resumeRecording}>
                 <StepForward className="mr-2 h-5 w-5" /> Resume
               </Button>
             )}
@@ -169,9 +198,17 @@ export default function Home() {
 
           {recordingState !== "stopped" && (
             <div className="flex items-center gap-2">
-              {recordingState === "paused" && <Pause />}
+              {recordingState === "paused" && (
+                <div className="flex items-center gap-2 font-semibold">
+                  Paused
+                  <Pause />
+                </div>
+              )}
               {recordingState === "active" && (
-                <Disc className="animate-pulse text-red-500" />
+                <div className="flex items-center gap-2 font-semibold">
+                  Recording
+                  <Disc className="animate-pulse text-red-500" />
+                </div>
               )}
               <div className="font-mono text-lg">{formatTime(timer)}</div>
             </div>
