@@ -64,7 +64,7 @@ export default function Home() {
 
   const processChunks = () => {
     const blob = new Blob(chunksRef.current, {
-      type: "audio/ogg; codecs=opus",
+      type: "audio/mpeg",
     });
     setAudioURL(window.URL.createObjectURL(blob));
   };
