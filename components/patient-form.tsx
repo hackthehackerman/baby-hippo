@@ -35,7 +35,9 @@ export const PatientForm = ({
               <FormControl>
                 <Input placeholder="Jane Doe" {...field} />
               </FormControl>
-              <FormDescription>The patient's full, legal name.</FormDescription>
+              <FormDescription>
+                {"The patient's full, legal name."}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -129,7 +131,7 @@ export const PatientForm = ({
           name="therapistNotes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Therapist's Notes</FormLabel>
+              <FormLabel>{"Therapist's Notes"}</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Notes from the therapist..."

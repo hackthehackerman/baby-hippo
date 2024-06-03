@@ -194,7 +194,7 @@ export default function Home() {
     for (let [k, v] of Object.entries(streamedData)) {
       form.setValue(k as any, v);
     }
-  }, [streamedData]);
+  }, [streamedData, form]);
 
   return (
     <main className="relative flex max-h-screen min-h-screen gap-3">

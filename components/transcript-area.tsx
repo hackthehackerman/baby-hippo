@@ -18,3 +18,5 @@ export const TranscriptArea = forwardRef(
     );
   },
 );
+
+TranscriptArea.displayName = "TranscriptArea";
