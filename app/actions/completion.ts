@@ -26,6 +26,8 @@ const buildPrompt = (transcript: string) => {
       This is a professional medical form. Based on the transcript, make appropriate assumptions, but nothing that is far-reaching, or medically ambiguous.
 
       The goal is to take the content of this spoken-word transcript, and fill the form with professional medical language/tone.
+
+      DO NOT HALLUCINATE/RESPOND WITH MADE UP INFORMATION THAT CANNOT BE DEDUCED FROM THE CONVERSATION TRANSCRIPT.
       
       DO NOT RESPOND WITH ANYTHING ELSE. DO NOT RESPOND IN MARKDOWN FORMAT.`;
 };
