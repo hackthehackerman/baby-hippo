@@ -30,7 +30,7 @@ export default function Home() {
 
   const { deepgram, initializeDeepgram, disconnect } = useDeepgram();
 
-  const { mic, startMic, stopMic } = useMic();
+  const { mic, startMic, stopMic, initializeMic } = useMic();
   const chunksRef = useRef<Blob[]>([]);
 
   const [audioURL, setAudioURL] = useState("");
@@ -60,6 +60,10 @@ export default function Home() {
       clearInterval(keepAliveInterval.current);
     };
   }, [deepgram, recordingState]);
+
+  useEffect(() => {
+    initializeMic();
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;

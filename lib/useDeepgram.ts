@@ -45,17 +45,9 @@ export const useDeepgram = () => {
     }
   };
 
-  const disconnect = useCallback(() => {
-    if (
-      deepgram &&
-      (deepgram.getReadyState() !== LiveConnectionState.CLOSED ||
-        deepgram?.getReadyState() !== LiveConnectionState.CLOSING)
-    ) {
-      deepgram.removeAllListeners();
-      deepgram.finish();
-      setDeepgram(null);
-    }
-  }, [deepgram]);
+  const disconnect = () => {
+    deepgram?.finish();
+  };
 
   return { deepgram, disconnect, initializeDeepgram };
 };

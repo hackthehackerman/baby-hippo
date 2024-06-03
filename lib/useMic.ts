@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 export const useMic = () => {
   const [mic, setMic] = useState<MediaRecorder | null>(null);
 
-  const initMic = async () => {
+  const initializeMic = async () => {
     try {
       const userMedia = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -15,7 +15,6 @@ export const useMic = () => {
       const microphone = new MediaRecorder(userMedia);
 
       setMic(microphone);
-      return microphone;
     } catch (err: any) {
       console.error(err);
       throw err;
@@ -23,18 +22,18 @@ export const useMic = () => {
   };
 
   const stopMic = useCallback(() => {
-    mic?.stream.getAudioTracks().forEach((track) => track.stop());
-    setMic(null);
-  }, [mic]);
-
-  const startMic = useCallback(async () => {
-    if (!mic) {
-      const microphone = await initMic();
-      microphone.start(250);
-    } else {
-      mic.start(250);
+    if (mic?.state === "recording") {
+      mic.stop();
     }
   }, [mic]);
 
-  return { mic, initMic, startMic, stopMic };
+  const startMic = useCallback(() => {
+    if (mic?.state === "paused") {
+      mic.resume();
+    } else {
+      mic?.start(250);
+    }
+  }, [mic]);
+
+  return { mic, initializeMic, startMic, stopMic };
 };
