@@ -6,17 +6,24 @@ import {
 } from "@deepgram/sdk";
 import { useCallback, useState } from "react";
 
-const DEEPGRAM_API_KEY = process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY;
+const getApiKey = async (): Promise<string> => {
+  const response = await fetch("/api/authenticate", {
+    cache: "no-store",
+  });
+  const result = await response.json();
+  return result.key;
+};
 
 export const useDeepgram = () => {
   const [deepgram, setDeepgram] = useState<LiveClient | null>(null);
 
-  const initializeDeepgram = () => {
+  const initializeDeepgram = async () => {
+    const key = await getApiKey();
     if (
-      DEEPGRAM_API_KEY &&
+      key &&
       (!deepgram || deepgram.getReadyState() === LiveConnectionState.CLOSED)
     ) {
-      const client = createClient(DEEPGRAM_API_KEY);
+      const client = createClient(key);
 
       const liveClient = client.listen.live({
         model: "nova-2",

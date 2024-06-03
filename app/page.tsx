@@ -39,6 +39,7 @@ export default function Home() {
   const keepAliveInterval = useRef<NodeJS.Timeout>();
   const [streamedData, setStreamedData] = useState("");
   const [isFillingForm, setIsFillingForm] = useState(false);
+  const [isDeepgramInitializing, setIsDeepgramInitializing] = useState(false);
 
   useEffect(() => {
     if (!deepgram) return;
@@ -117,8 +118,10 @@ export default function Home() {
   }, [deepgram, mic]);
 
   const startRecording = async () => {
-    initializeDeepgram();
+    setIsDeepgramInitializing(true);
+    await initializeDeepgram();
     startMic();
+    setIsDeepgramInitializing(false);
     if (recordingState === "stopped") {
       setTimer(0);
     }
@@ -208,6 +211,7 @@ export default function Home() {
             timer={timer}
             transcript={transcript}
             fillForm={fillForm}
+            isDeepgramInitializing={isDeepgramInitializing}
           />
           <TranscriptArea transcript={transcript} ref={textareaRef} />
         </div>

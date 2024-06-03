@@ -10,6 +10,7 @@ import {
   Sparkles,
   StepForward,
 } from "lucide-react";
+import { Spinner } from "./spinner";
 
 type Props = {
   recordingState: RecordingState;
@@ -22,6 +23,7 @@ type Props = {
   audioURL: string;
   timer: number;
   fillForm: () => Promise<void>;
+  isDeepgramInitializing: boolean;
 };
 
 export const RecordingControls: React.FC<Props> = ({
@@ -35,14 +37,23 @@ export const RecordingControls: React.FC<Props> = ({
   audioURL,
   timer,
   fillForm,
+  isDeepgramInitializing,
 }) => {
   return (
     <div className="flex h-20 items-center justify-between gap-4 rounded-lg border border-border bg-background p-4">
       <div className="flex items-center gap-3">
-        {recordingState === "stopped" && !transcript && !audioURL && (
-          <Button size={"sm"} onClick={startRecording}>
-            <Mic className="mr-2 h-5 w-5" /> Start Recording
-          </Button>
+        {recordingState === "stopped" &&
+          !transcript &&
+          !audioURL &&
+          !isDeepgramInitializing && (
+            <Button size={"sm"} onClick={startRecording}>
+              <Mic className="mr-2 h-5 w-5" /> Start Recording
+            </Button>
+          )}
+        {isDeepgramInitializing && (
+          <div className="flex items-center gap-2">
+            <Spinner /> Initializing
+          </div>
         )}
         {recordingState === "stopped" && (!!transcript || !!audioURL) && (
           <>

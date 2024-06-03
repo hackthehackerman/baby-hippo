@@ -7,13 +7,16 @@ import { createStreamableValue } from "ai/rsc";
 
 const buildPrompt = (transcript: string) => {
   return `You are a scribe for a physical therapist. Below is the transcript for the conversation between the physical therapist and the patient:
-  
-      "${transcript}"
+    ---transcript begin---
+      ${transcript}
+    ---transcript end---
       
        Your job is to understand the conversation and fill up a form in JSON only (NOTHING ELSE IN YOUR RESPONSE) just as a scribe would. The zod schema of the form is below:
       
+    ---schema begin---
       ${formSchema.shape}
-      
+    ---schema end---
+
       Your response should be in the following format:
       {
         "fieldName": "value",
@@ -28,6 +31,8 @@ const buildPrompt = (transcript: string) => {
       The goal is to take the content of this spoken-word transcript, and fill the form with professional medical language/tone.
 
       DO NOT HALLUCINATE/RESPOND WITH MADE UP INFORMATION THAT CANNOT BE DEDUCED FROM THE CONVERSATION TRANSCRIPT.
+
+      IF THERE IS NOT ENOUGH INFORMATION IN THE TRANSCRIPT
       
       DO NOT RESPOND WITH ANYTHING ELSE. DO NOT RESPOND IN MARKDOWN FORMAT.`;
 };
