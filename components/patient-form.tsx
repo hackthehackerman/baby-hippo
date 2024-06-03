@@ -2,9 +2,8 @@
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import { UseFormReturn, useForm } from "react-hook-form";
+import { formSchema } from "@/lib/formSchema";
+import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
@@ -15,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "./ui/form";
-import { formSchema } from "@/app/page";
 
 export const PatientForm = ({
   form,
@@ -24,7 +22,7 @@ export const PatientForm = ({
 }) => {
   return (
     <Form {...form}>
-      <form className="grid gap-6">
+      <form className="relative mb-6 grid gap-6">
         <div className="font-semibold">
           Physical Therapy Initial Evaluation Form
         </div>

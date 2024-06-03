@@ -12,22 +12,15 @@ import {
 } from "@deepgram/sdk";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { formSchema } from "@/lib/formSchema";
+import { StreamableValue, readStreamableValue } from "ai/rsc";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { generateCompletion } from "./actions/completion";
+import { Spinner } from "@/components/spinner";
 
 export type RecordingState = "active" | "paused" | "stopped";
-
-export const formSchema = z.object({
-  patientName: z.string().min(2).max(50),
-  dateOfBirth: z.string().datetime(),
-  caseNumber: z.string().optional(),
-  injuryDescription: z.string().min(10).max(500),
-  previousTreatment: z.string().min(5).max(500),
-  patientGoals: z.string().min(10).max(500),
-  referralSource: z.string().min(5).max(100),
-  therapistNotes: z.string().min(5).max(1000),
-});
 
 export default function Home() {
   const [recordingState, setRecordingState] =
@@ -44,6 +37,8 @@ export default function Home() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [timer, setTimer] = useState(0);
   const keepAliveInterval = useRef<NodeJS.Timeout>();
+  const [streamedData, setStreamedData] = useState("");
+  const [isFillingForm, setIsFillingForm] = useState(false);
 
   useEffect(() => {
     if (!deepgram) return;
@@ -99,7 +94,6 @@ export default function Home() {
     const onData = (e: BlobEvent) => {
       if (deepgram && deepgram.getReadyState() === LiveConnectionState.OPEN) {
         chunksRef.current.push(e.data);
-
         deepgram?.send(e.data);
       }
     };
@@ -159,6 +153,7 @@ export default function Home() {
     setTranscript("");
     setRecordingState("stopped");
     form.reset();
+    setStreamedData("");
     chunksRef.current = [];
     setTimer(0);
   };
@@ -177,10 +172,26 @@ export default function Home() {
     },
   });
 
-  const fillForm = () => {
-    // need to call api here
-    console.log(transcript);
+  const processStreamedObject = async (object: StreamableValue) => {
+    for await (const partialObject of readStreamableValue(object)) {
+      if (partialObject) {
+        setStreamedData(partialObject);
+      }
+    }
   };
+
+  const fillForm = async () => {
+    setIsFillingForm(true);
+    const { object } = await generateCompletion(transcript);
+    await processStreamedObject(object);
+    setIsFillingForm(false);
+  };
+
+  useEffect(() => {
+    for (let [k, v] of Object.entries(streamedData)) {
+      form.setValue(k as any, v);
+    }
+  }, [streamedData]);
 
   return (
     <main className="relative flex max-h-screen min-h-screen gap-3">
@@ -200,7 +211,12 @@ export default function Home() {
           />
           <TranscriptArea transcript={transcript} ref={textareaRef} />
         </div>
-        <div className="flex w-1/2 flex-grow flex-col gap-3 overflow-scroll rounded-lg border border-border bg-background p-4">
+        <div className="relative flex w-1/2 flex-grow flex-col gap-3 overflow-scroll rounded-lg border border-border bg-background p-4">
+          {isFillingForm && (
+            <div className="absolute z-40 flex h-full w-full items-center justify-center bg-white/60">
+              <Spinner />
+            </div>
+          )}
           <PatientForm form={form} />
         </div>
       </main>

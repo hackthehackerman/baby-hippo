@@ -21,7 +21,7 @@ type Props = {
   transcript: string;
   audioURL: string;
   timer: number;
-  fillForm: () => void;
+  fillForm: () => Promise<void>;
 };
 
 export const RecordingControls: React.FC<Props> = ({

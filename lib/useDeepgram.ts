@@ -16,7 +16,6 @@ export const useDeepgram = () => {
       DEEPGRAM_API_KEY &&
       (!deepgram || deepgram.getReadyState() === LiveConnectionState.CLOSED)
     ) {
-      console.log("init");
       const client = createClient(DEEPGRAM_API_KEY);
 
       const liveClient = client.listen.live({
