@@ -122,6 +122,11 @@ export default function Home() {
   }, [deepgram, mic]);
 
   const startRecording = async () => {
+    if (!mic) {
+      alert("Please allow this website to access your microphone.");
+      return;
+    }
+
     setIsDeepgramInitializing(true);
     await initializeDeepgram();
     startMic();
